@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ListItem, PostStyle } from "../types";
 import { User, Plus, Download } from "lucide-react";
 import { Button } from "./ui/button";
@@ -7,7 +7,6 @@ import { Label } from "./ui/label";
 import StyleEditor from "./StyleEditor";
 import { stylePresets } from "../styles/presets";
 import AuthDialog from "./AuthDialog";
-import { supabase } from "../lib/supabase";
 import InfoTooltip from "./InfoTooltip";
 import PostItem from "./PostItem";
 import UserMenu from "./UserMenu";
@@ -27,6 +26,20 @@ export default function PostGenerator({ user }: PostGeneratorProps) {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // Function to update style and save to localStorage
+  const setStyleAndSave = (newStyle: PostStyle) => {
+    setStyle(newStyle);
+    localStorage.setItem("postStyle", JSON.stringify(newStyle));
+  };
+
+  // Load style from localStorage on component mount
+  useEffect(() => {
+    const savedStyle = localStorage.getItem("postStyle");
+    if (savedStyle) {
+      setStyle(JSON.parse(savedStyle));
+    }
+  }, []);
 
   const addItem = () => {
     setItems([...items, { title: "", description: "" }]);
@@ -333,9 +346,12 @@ export default function PostGenerator({ user }: PostGeneratorProps) {
             style={{ ...getBackgroundStyle(), fontFamily: style.font }}
           >
             <div className="h-full flex flex-col">
-              <div className="flex-1 flex flex-col" style={{
-                padding: `${style.contentPadding.top}px ${style.contentPadding.right}px ${style.contentPadding.bottom}px ${style.contentPadding.left}px`
-              }}>
+              <div
+                className="flex-1 flex flex-col"
+                style={{
+                  padding: `${style.contentPadding.top}px ${style.contentPadding.right}px ${style.contentPadding.bottom}px ${style.contentPadding.left}px`,
+                }}
+              >
                 <h1
                   className="font-bold mb-12 leading-tight"
                   style={{
@@ -464,7 +480,7 @@ export default function PostGenerator({ user }: PostGeneratorProps) {
 
       {/* Right Sidebar - Style Editor */}
       <div className="w-80 border-l bg-white fixed right-0 top-0 h-full">
-        <StyleEditor currentStyle={style} onStyleChange={setStyle} />
+        <StyleEditor currentStyle={style} onStyleChange={setStyleAndSave} />
       </div>
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
